@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emma - AI Chatbot</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #121212; color: #ffffff; text-align: center; padding: 20px; }
+        #chat-container { 
+            width: 100%; max-width: 400px; margin: auto; background: #1e1e1e; padding: 20px; 
+            border-radius: 10px; box-shadow: 0 0 10px rgba(255, 255, 255, 0.1); 
+            display: none;
+        }
+        #chat-box { height: 300px; overflow-y: auto; border-bottom: 1px solid #444; padding: 10px; text-align: left; }
+        .message { padding: 8px; margin: 5px 0; border-radius: 5px; display: flex; align-items: center; }
+        .user { background: #007bff; color: white; text-align: right; justify-content: flex-end; }
+        .bot { background: #333; color: #ffffff; text-align: left; }
+        .bot img { width: 20px; height: 20px; border-radius: 50%; margin-right: 8px; }
+        .bot .ashik-image { width: 100%; max-width: 400px; height: auto; border-radius: 10px; margin-top: 10px; }
+        #user-input { width: 70%; padding: 10px; margin-top: 10px; background: #333; color: #ffffff; border: 1px solid #555; }
+        #send-btn { padding: 10px; background: #007bff; color: white; border: none; cursor: pointer; }
+        #logo { width: 120px; border-radius: 50%; margin-bottom: 10px; }
+        #footer { margin-top: 20px; font-size: 14px; color: #bbb; }
+        #start-chat-btn {
+            padding: 12px 20px;
+            font-size: 18px;
+            margin-top: 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .social-icons {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .social-icons img {
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            transition: transform 0.3s ease-in-out;
+            border-radius: 10px;
+        }
+        .social-icons img:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <img id="logo" src="https://i.imgur.com/xmZAbQO.png" alt="Emma Chatbot Logo">
+    <h2>Emma - AI Chatbot</h2>
+    <button id="start-chat-btn">Start Chat Without Login</button>
+    <div id="chat-container">
+        <div id="chat-box"></div>
+        <input type="text" id="user-input" placeholder="Type a message...">
+        <button id="send-btn">Send</button>
+    </div>
+    <div id="footer">Developed by TeamX Corporation Limited</div>
+    <div class="social-icons">
+        <a href="https://youtube.com/@achique_gamer?si=nWQzA6U3OFLY7X5v" target="_blank">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png" alt="YouTube">
+        </a>
+        <a href="https://www.instagram.com/ashik_hu_yaar/" target="_blank">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram">
+        </a>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let memory = JSON.parse(localStorage.getItem("emma_memory")) || {};
+            const botLogo = "https://i.imgur.com/xmZAbQO.png";
+            const chatContainer = document.getElementById("chat-container");
+            const startChatBtn = document.getElementById("start-chat-btn");
+            
+            const emojiMap = {
+                "smile": "😊",
+                "sad": "😢",
+                "laugh": "😂",
+                "wink": "😉",
+                "love": "❤️",
+                "angry": "😡",
+                "surprised": "😲",
+                "kiss": "😘",
+                "cool": "😎",
+                "confused": "😕",
+                "crying": "😭",
+                "heart": "💖",
+                "thumbsup": "👍",
+                "thumbsdown": "👎",
+                "fire": "🔥",
+                "clap": "👏",
+                "ok": "👌",
+                "star": "⭐",
+                "birthday": "🎂",
+                "clown": "🤡",
+                "alien": "👽",
+                "robot": "🤖",
+                "poop": "💩",
+                "sleepy": "😴",
+                "angel": "😇",
+                "devil": "😈",
+                "blush": "😊",
+                "thinking": "🤔",
+                "shushing": "🤫",
+                "party": "🥳",
+                "gift": "🎁",
+                "money": "💰",
+                "camera": "📷",
+                "dog": "🐕",
+                "cat": "🐈",
+                "horse": "🐎",
+                "car": "🚗",
+                "bicycle": "🚲",
+                "rocket": "🚀",
+                "airplane": "✈️",
+                "sun": "☀️",
+                "moon": "🌙",
+                "earth": "🌍",
+                "star": "⭐",
+                "cloud": "☁️",
+                "rainbow": "🌈",
+                "snowflake": "❄️",
+                "music": "🎶",
+                "note": "🎵",
+                "movie": "🎬",
+                "book": "📚",
+                "pen": "🖊️",
+                "basketball": "🏀",
+                "soccer": "⚽",
+                "baseball": "⚾"
+            };
+
+            if (sessionStorage.getItem("chatOpen") === "true") {
+                startChatBtn.style.display = "none";
+                chatContainer.style.display = "block";
+            }
+
+            startChatBtn.addEventListener("click", function () {
+                startChatBtn.style.display = "none";
+                chatContainer.style.display = "block";
+                sessionStorage.setItem("chatOpen", "true");
+            });
+
+            function sendMessage() {
+                let userInput = document.getElementById("user-input").value.trim().toLowerCase();
+                if (userInput === "") return;
+                let chatBox = document.getElementById("chat-box");
+                chatBox.innerHTML += `<div class="message user">${userInput}</div>`;
+                
+                let botReply = "I'm not sure how to respond to that. 🤖";
+                
+                if (memory[userInput]) {
+                    botReply = memory[userInput];
+                } else if (emojiMap[userInput]) {
+                    botReply = emojiMap[userInput];
+                } else if (["ashik", "ashik ilahi", "who is ashik", "who is ashik ilahi"].includes(userInput)) {
+                    botReply = "Ashik Ilahi is a gaming Youtuber and founder of 'TeamX Corporation Limited'.";
+                    botReply += `<img src='https://i.imgur.com/ih3VGjN.png' class='ashik-image' style='width: 33%;'>`;
+                } else if (["who created you"].includes(userInput)) {
+                    botReply = "Ashik Ilahi, director of 'TeamX Corporation Limited', has created me.";
+                } else if (["good morning", "good night", "good afternoon", "good evening", "bye", "hi", "hey", "hello", "goodbye"].includes(userInput)) {
+                    const greetingResponses = {
+                        "good morning": "Good morning! Hope you have a great day ahead! ☀️",
+                        "good night": "Good night! Sweet dreams! 🌙",
+                        "good afternoon": "Good afternoon! How's your day going? ☀️",
+                        "good evening": "Good evening! How was your day? 🌆",
+                        "bye": "Goodbye! Have a great day! 👋",
+                        "hi": "Hi there! How can I assist you? 😊",
+                        "hey": "Hey! What's up? 😃",
+                        "hello": "Hello! How can I help you today? 🤖",
+                        "goodbye": "Goodbye! See you soon! 👋"
+                    };
+                    botReply = greetingResponses[userInput];
+                } else if (["image of ashik ilahi", "show me the image of ashik ilahi", "photo of ashik ilahi", "show me the photo of ashik ilahi", "picture of ashik ilahi", "show me the picture of ashik ilahi"].includes(userInput)) {
+                    botReply = `<img src='https://i.imgur.com/ih3VGjN.png' class='ashik-image' style='width: 33%;'>`;
+                }
+                
+                setTimeout(() => {
+                    chatBox.innerHTML += `<div class="message bot"><img src="${botLogo}" alt="Bot"> ${botReply}</div>`;
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }, 1000);
+                document.getElementById("user-input").value = "";
+            }
+
+            document.getElementById("send-btn").addEventListener("click", sendMessage);
+            document.getElementById("user-input").addEventListener("keypress", function (event) {
+                if (event.key === "Enter") {
+                    sendMessage();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
